@@ -1,0 +1,26 @@
+{
+  "name": "lunchbot",
+  "version": "1.0.0",
+  "description": "A bot based on Microsoft Bot Framework",
+  "main": "server.js",
+  "scripts": {
+    "test": ""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dex/lunchbot.git"
+  },
+  "keywords": [
+    "botframework"
+  ],
+  "author": "Dex Chen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dex/lunchbot/issues"
+  },
+  "homepage": "https://github.com/dex/lunchbot#readme",
+  "dependencies": {
+    "botbuilder": "^0.6.5",
+    "restify": "^4.0.4"
+  }
+}
