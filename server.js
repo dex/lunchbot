@@ -82,7 +82,7 @@ bot.on('deleteUserData', function (message) {
 //=========================================================
 
 // Anytime the major version is incremented any existing conversations will be restarted.
-bot.use(builder.Middleware.dialogVersion({ version: 3.0, resetCommand: /^reset/i }));
+bot.use(builder.Middleware.dialogVersion({ version: 4.0, resetCommand: /^reset/i }));
 
 //=========================================================
 // Bots Global Actions
@@ -115,7 +115,7 @@ function randomIntInc (low, high) {
 }
 
 bot.dialog('/', new builder.IntentDialog()
-    .matches(/^lunch/i, function (session) {
+    .matches(/^(<at .*at> )?lunch/i, function (session) {
 	session.beginDialog('/lunch');
     })
     .onDefault(function (session) {
