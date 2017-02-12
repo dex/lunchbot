@@ -82,7 +82,7 @@ bot.on('deleteUserData', function (message) {
 //=========================================================
 
 // Anytime the major version is incremented any existing conversations will be restarted.
-bot.use(builder.Middleware.dialogVersion({ version: 1.0, resetCommand: /^reset/i }));
+bot.use(builder.Middleware.dialogVersion({ version: 2.0, resetCommand: /^reset/i }));
 
 //=========================================================
 // Bots Global Actions
