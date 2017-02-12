@@ -82,14 +82,14 @@ bot.on('deleteUserData', function (message) {
 //=========================================================
 
 // Anytime the major version is incremented any existing conversations will be restarted.
-bot.use(builder.Middleware.dialogVersion({ version: 2.0, resetCommand: /^reset/i }));
+bot.use(builder.Middleware.dialogVersion({ version: 3.0, resetCommand: /^reset/i }));
 
 //=========================================================
 // Bots Global Actions
 //=========================================================
 
 bot.endConversationAction('goodbye', 'Goodbye :)', { matches: /^goodbye/i });
-bot.beginDialogAction('lunch', '/lunch', { matches: /^lunch/i });
+//bot.beginDialogAction('lunch', '/lunch', { matches: /^lunch/i });
 
 //=========================================================
 // Bots Dialogs
@@ -114,9 +114,13 @@ function randomIntInc (low, high) {
     return Math.floor(Math.random() * (high - low + 1) + low);
 }
 
-bot.dialog('/', function (session) {
+bot.dialog('/', new builder.IntentDialog()
+    .matches(/^lunch/i, function (session) {
+	session.beginDialog('/lunch');
+    })
+    .onDefault(function (session) {
 	session.send('please type "lunch"');
-});
+    }));
 
 bot.dialog('/lunch', [
     function (session) {
