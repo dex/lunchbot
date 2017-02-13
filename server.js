@@ -81,8 +81,32 @@ bot.on('deleteUserData', function (message) {
 // Bots Middleware
 //=========================================================
 
+builder.Middleware.convertSkypeGroupMessages = function() {
+    return {
+        botbuilder: function (session, next) {
+            let message = session.message;
+            let address = message.address;
+            if (address.channelId === "skype" && address.conversation.isGroup) {
+                if (message.entities.length > 0) {
+                    let content = message.text;
+                    message.entities.forEach((entity) => {
+			if (entity.type == "mention") {
+			    content = message.text.replace(entity.text, '');
+			}
+                    });
+                    session.message.text = content.trim();
+                }
+            }
+            next();
+        }
+    }
+};
+
+// convert skype group messages till better times
+bot.use(builder.Middleware.convertSkypeGroupMessages());
+
 // Anytime the major version is incremented any existing conversations will be restarted.
-bot.use(builder.Middleware.dialogVersion({ version: 8.0, resetCommand: /^reset/i }));
+bot.use(builder.Middleware.dialogVersion({ version: 12.0, resetCommand: /^reset/i }));
 
 //=========================================================
 // Bots Global Actions
@@ -105,7 +129,7 @@ var stores = [
     '阿婧姑麻油雞(港漧)',
     '秋家麵疙瘩(港漧)',
     '洲子美食街',
-    '吃自由廣場',
+    '自由廣場',
     '麗山餃子館',
     '越南美食'
 ];
@@ -114,17 +138,19 @@ function randomIntInc (low, high) {
     return Math.floor(Math.random() * (high - low + 1) + low);
 }
 
-bot.dialog('/', new builder.IntentDialog()
-//   .matches(/^(<at .*at> )?lunch/ig, function (session) {
-//	session.beginDialog('/lunch');
-//    })
-    .onDefault(function (session) {
-	session.beginDialog('/lunch');
-    }));
+var myLuisURL= process.env.LUIS_URL;
+var recognizer = new builder.LuisRecognizer(myLuisURL);
 
-bot.dialog('/lunch', [
-    function (session) {
-	var idx = randomIntInc(0, stores.length-1);
-        session.endDialog('建議今天吃%s', stores[idx]);
-    }
-]);
+bot.dialog('/', new builder.IntentDialog({recognizers:[recognizer]})
+    .matches('Lunch', '/lunch')
+    .matches('Hello', '/hello')
+    .onDefault(builder.DialogAction.send("I'm sorry. I didn't understand.")));
+
+bot.dialog('/lunch', function (session) {
+    var idx = randomIntInc(0, stores.length-1);
+    session.endDialog('建議今天吃%s', stores[idx]);
+});
+
+bot.dialog('/hello', function (session) {
+    session.endDialog('Hi 您好 :)');
+});
