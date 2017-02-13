@@ -82,7 +82,7 @@ bot.on('deleteUserData', function (message) {
 //=========================================================
 
 // Anytime the major version is incremented any existing conversations will be restarted.
-bot.use(builder.Middleware.dialogVersion({ version: 4.0, resetCommand: /^reset/i }));
+bot.use(builder.Middleware.dialogVersion({ version: 8.0, resetCommand: /^reset/i }));
 
 //=========================================================
 // Bots Global Actions
@@ -115,11 +115,11 @@ function randomIntInc (low, high) {
 }
 
 bot.dialog('/', new builder.IntentDialog()
-    .matches(/^(<at .*at> )?lunch/i, function (session) {
-	session.beginDialog('/lunch');
-    })
+//   .matches(/^(<at .*at> )?lunch/ig, function (session) {
+//	session.beginDialog('/lunch');
+//    })
     .onDefault(function (session) {
-	session.send('please type "lunch"');
+	session.beginDialog('/lunch');
     }));
 
 bot.dialog('/lunch', [
