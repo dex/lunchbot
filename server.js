@@ -6,6 +6,7 @@
 
 var restify = require('restify');
 var builder = require('botbuilder');
+var GooglePlaces = require('googleplaces');
 
 //=========================================================
 // Bot Setup
@@ -25,6 +26,9 @@ var connector = new builder.ChatConnector({
 
 var bot = new builder.UniversalBot(connector);
 server.post('/api/messages', connector.listen());
+
+// Google Places service
+var places = new GooglePlaces(process.env.GOOGLE_PLACES_API_KEY, process.env.GOOGLE_PLACES_OUTPUT_FORMAT);
 
 
 //=========================================================
@@ -149,16 +153,42 @@ bot.dialog('/', new builder.IntentDialog({recognizers:[recognizer]})
     .onDefault(builder.DialogAction.send("I'm sorry. I didn't understand.")));
 
 bot.dialog('/lunch', function (session) {
+    var parameters = {
+	location: [25.0783711, 121.5714316],
+	types: "food|restaurant",
+	language: "zh-TW"
+    };
+    places.placeSearch(parameters, function (error, response) {
+        if (error) throw error;
+	var results = response.results;
+	var idx = randomIntInc(0, results.length-1);
+	var target = results[idx];
+	var loc = target.geometry.location;
+	var msg = new builder.Message(session)
+	    .textFormat(builder.TextFormat.xml)
+	    .attachments([
+		new builder.HeroCard(session)
+		.text('建議今天吃『'+target.name+'』<br/>地址: '+target.vicinity)
+		.images([
+		    builder.CardImage.create(session, "http://maps.google.com/maps/api/staticmap?markers="+loc.lat+","+loc.lng+"&size=400x400&zoom=19")
+		])
+	    ]);
+	session.send(msg);
+    });
+    session.endDialog();
+});
+
+bot.dialog('/lunch-old', function (session) {
     var idx = randomIntInc(0, stores.length-1);
     var msg = new builder.Message(session)
-            .textFormat(builder.TextFormat.xml)
-	    .attachments([
-                new builder.HeroCard(session)
-                    .text('建議今天吃'+stores[idx].name+'')
-                    .images([
-                        builder.CardImage.create(session, "http://maps.google.com/maps/api/staticmap?markers="+stores[idx].latitude+","+stores[idx].longitude+"&size=400x400&zoom=19")
-                    ])
-	    ]);
+	.textFormat(builder.TextFormat.xml)
+	.attachments([
+	    new builder.HeroCard(session)
+	    .text('建議今天吃'+stores[idx].name+'')
+	    .images([
+		builder.CardImage.create(session, "http://maps.google.com/maps/api/staticmap?markers="+stores[idx].latitude+","+stores[idx].longitude+"&size=400x400&zoom=19")
+	    ])
+	]);
     session.endDialog(msg);
 });
 
