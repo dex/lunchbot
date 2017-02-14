@@ -84,11 +84,11 @@ bot.on('deleteUserData', function (message) {
 builder.Middleware.convertSkypeGroupMessages = function() {
     return {
         botbuilder: function (session, next) {
-            let message = session.message;
-            let address = message.address;
+            var message = session.message;
+            var address = message.address;
             if (address.channelId === "skype" && address.conversation.isGroup) {
                 if (message.entities.length > 0) {
-                    let content = message.text;
+                    var content = message.text;
                     message.entities.forEach((entity) => {
 			if (entity.type == "mention") {
 			    content = message.text.replace(entity.text, '');
@@ -120,18 +120,18 @@ bot.endConversationAction('goodbye', 'Goodbye :)', { matches: /^goodbye/i });
 //=========================================================
 
 var stores = [ 
-    '排骨飯', 
-    '周胖子', 
-    '青葉豬腳(港漧)', 
-    '濟州豆腐鍋之家',
-    '溫州大餛飩',
-    '小廚櫃',
-    '阿婧姑麻油雞(港漧)',
-    '秋家麵疙瘩(港漧)',
-    '洲子美食街',
-    '自由廣場',
-    '麗山餃子館',
-    '越南美食'
+    { name:'排骨飯', latitude:25.082071, longitude:121.571479 },
+//    '周胖子', 
+//    '青葉豬腳(港漧)', 
+//    '濟州豆腐鍋之家',
+//    '溫州大餛飩',
+//    '小廚櫃',
+//    '阿婧姑麻油雞(港漧)',
+//    '秋家麵疙瘩(港漧)',
+//    '洲子美食街',
+//    '自由廣場',
+//    '麗山餃子館',
+//    '越南美食'
 ];
 
 function randomIntInc (low, high) {
@@ -150,7 +150,16 @@ bot.dialog('/', new builder.IntentDialog({recognizers:[recognizer]})
 
 bot.dialog('/lunch', function (session) {
     var idx = randomIntInc(0, stores.length-1);
-    session.endDialog('建議今天吃%s', stores[idx]);
+    var msg = new builder.Message(session)
+            .textFormat(builder.TextFormat.xml)
+	    .attachments([
+                new builder.HeroCard(session)
+                    .text('建議今天吃'+stores[idx].name+'')
+                    .images([
+                        builder.CardImage.create(session, "http://maps.google.com/maps/api/staticmap?markers="+stores[idx].latitude+","+stores[idx].longitude+"&size=400x400&zoom=19")
+                    ])
+	    ]);
+    session.endDialog(msg);
 });
 
 bot.dialog('/hello', function (session) {
