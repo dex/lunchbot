@@ -142,6 +142,7 @@ var myLuisURL= process.env.LUIS_URL;
 var recognizer = new builder.LuisRecognizer(myLuisURL);
 
 bot.dialog('/', new builder.IntentDialog({recognizers:[recognizer]})
+    .matches(/^lunch/i, '/lunch')
     .matches('Lunch', '/lunch')
     .matches('Hello', '/hello')
     .onDefault(builder.DialogAction.send("I'm sorry. I didn't understand.")));
