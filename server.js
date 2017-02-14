@@ -138,6 +138,8 @@ var stores = [
 //    '越南美食'
 ];
 
+var price_str = ['免費', '便宜', '適中', '昂貴', '非常昂貴'];
+
 function randomIntInc (low, high) {
     return Math.floor(Math.random() * (high - low + 1) + low);
 }
@@ -158,22 +160,34 @@ bot.dialog('/lunch', function (session) {
 	types: "food|restaurant",
 	language: "zh-TW"
     };
-    places.placeSearch(parameters, function (error, response) {
+    places.radarSearch(parameters, function (error, response) {
         if (error) throw error;
 	var results = response.results;
 	var idx = randomIntInc(0, results.length-1);
-	var target = results[idx];
-	var loc = target.geometry.location;
-	var msg = new builder.Message(session)
-	    .textFormat(builder.TextFormat.xml)
-	    .attachments([
-		new builder.HeroCard(session)
-		.text('建議今天吃『'+target.name+'』<br/>地址: '+target.vicinity)
-		.images([
-		    builder.CardImage.create(session, "http://maps.google.com/maps/api/staticmap?markers="+loc.lat+","+loc.lng+"&size=400x400&zoom=19")
-		])
-	    ]);
-	session.send(msg);
+	var parameters = {
+	    placeid: results[idx].place_id,
+	    language: "zh-TW"
+	}
+	places.placeDetailsRequest(parameters, function (error, response) {
+	    var target = response.result;
+	    var loc = target.geometry.location;
+	    var msg = new builder.Message(session)
+		.textFormat(builder.TextFormat.xml)
+		.attachments([
+		    new builder.HeroCard(session)
+		    .text(
+			'建議今天吃『'+target.name+'』<br/>'+
+			'評價: '+(target.rating||'未知')+' 顆星<br/>'+
+			'價位: '+(price_str[target.price_level]||'未知')+'<br/>'+
+			'地址: '+target.vicinity+'<br/>'+
+			'電話: '+target.formatted_phone_number
+		    )
+		    .images([
+			builder.CardImage.create(session, "http://maps.google.com/maps/api/staticmap?markers="+loc.lat+","+loc.lng+"&size=400x400&zoom=19")
+		    ])
+		]);
+	    session.send(msg);
+	});
     });
     session.endDialog();
 });
