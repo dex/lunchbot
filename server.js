@@ -145,6 +145,7 @@ bot.dialog('/', new builder.IntentDialog({recognizers:[recognizer]})
     .matches(/^lunch/i, '/lunch')
     .matches('Lunch', '/lunch')
     .matches('Hello', '/hello')
+    .matches('Chinese', '/chinese')
     .onDefault(builder.DialogAction.send("I'm sorry. I didn't understand.")));
 
 bot.dialog('/lunch', function (session) {
@@ -154,4 +155,8 @@ bot.dialog('/lunch', function (session) {
 
 bot.dialog('/hello', function (session) {
     session.endDialog('Hi 您好 :)');
+});
+
+bot.dialog('/chinese', function (session) {
+    session.endDialog('只是略懂');
 });
