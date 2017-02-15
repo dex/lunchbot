@@ -123,25 +123,59 @@ bot.endConversationAction('goodbye', 'Goodbye :)', { matches: /^goodbye/i });
 // Bots Dialogs
 //=========================================================
 
-var stores = [ 
-    { name:'排骨飯', latitude:25.082071, longitude:121.571479 },
-//    '周胖子', 
-//    '青葉豬腳(港漧)', 
-//    '濟州豆腐鍋之家',
-//    '溫州大餛飩',
-//    '小廚櫃',
-//    '阿婧姑麻油雞(港漧)',
-//    '秋家麵疙瘩(港漧)',
-//    '洲子美食街',
-//    '自由廣場',
-//    '麗山餃子館',
-//    '越南美食'
+var favorites = [ // Google Place IDs
+    {place_id:'ChIJZYEp0G6sQjQR36eMZVvdz7s'}, // '排骨飯'
+    {place_id:'ChIJTStVq46sQjQRzbIyp3EQa3Q'}, // '周胖子'
+    {place_id:'ChIJF22dNnusQjQRLAH1mPaURcQ'}, // '東葉豬腳(港漧)'
+    {place_id:'ChIJzRrJaW-sQjQRR5bO8cu1CZc'}, // '濟州豆腐鍋之家'
+    {place_id:'ChIJt_iri2WsQjQRPBGHT3nuFtc'}, // '溫州大餛飩'
+    {place_id:'ChIJjUwXm26sQjQR7m5vw-drWx8'}, // '小廚櫃'
+    {place_id:'ChIJE_PiNHusQjQRmDvK62M_SHk'}, // '阿婧姑麻油雞(港漧)'
+    {place_id:'ChIJkc-rNXusQjQRaahdgDUtq-A'}, // '秋家麵疙瘩(港漧)'
+    {place_id:'ChIJgcjK7WWsQjQR-YUHbPvHkOk'}, // '江記'
+    {place_id:'ChIJ6cR16mWsQjQRqrfDjuRRkic'}, // '麗山餃子館'
+    {place_id:'ChIJM_CA62WsQjQRcCzjcrYMI-4'}, // '越南美食'
+    {place_id:'ChIJhTzhxm-sQjQRPc_xAdkk3_k'}, // '洲子美食街'
+    {place_id:'ChIJPYTgGWWsQjQRPJOWXnjc0b0'}, // '自由廣場'
 ];
 
 var price_str = ['免費', '便宜', '適中', '昂貴', '非常昂貴'];
 
 function randomIntInc (low, high) {
     return Math.floor(Math.random() * (high - low + 1) + low);
+}
+
+function googleStaticMapImage (lat, lng) {
+    return "http://maps.google.com/maps/api/staticmap?markers="+lat+","+lng+"&size=400x400&zoom=19"
+}
+
+function newPlaceInfoCard (session, place) {
+    var loc = place.geometry.location;
+    return new builder.HeroCard(session)
+	.text(
+	      '建議今天吃『'+place.name+'』<br/>'+
+	      '評價: '+(place.rating||'未知')+' 顆星<br/>'+
+	      '價位: '+(price_str[place.price_level]||'未知')+'<br/>'+
+	      '地址: '+place.vicinity+'<br/>'+
+	      '電話: '+place.formatted_phone_number
+	     )
+	.images([
+		builder.CardImage.create(session, googleStaticMapImage(loc.lat, loc.lng))
+	]);
+}
+
+function sendRandomPlaceInfoCard (session, results) {
+    var idx = randomIntInc(0, results.length-1);
+    var parameters = {
+	placeid: results[idx].place_id,
+	language: "zh-TW"
+    }
+    places.placeDetailsRequest(parameters, function (error, response) {
+	var msg = new builder.Message(session)
+	    .textFormat(builder.TextFormat.xml)
+	    .attachments([newPlaceInfoCard(session, response.result)]);
+	session.send(msg);
+    });
 }
 
 var myLuisURL= process.env.LUIS_URL;
@@ -154,7 +188,17 @@ bot.dialog('/', new builder.IntentDialog({recognizers:[recognizer]})
     .matches('Chinese', '/chinese')
     .onDefault(builder.DialogAction.send("I'm sorry. I didn't understand.")));
 
-bot.dialog('/lunch', function (session) {
+bot.dialog('/lunch', function (session, args) {
+    var nearby = builder.EntityRecognizer.findEntity(args.entities, 'nearby');
+    if (nearby) {
+	session.beginDialog('/lunchNearby');
+    } else {
+	sendRandomPlaceInfoCard(session, favorites);
+    }
+    session.endDialog();
+});
+
+bot.dialog('/lunchNearby', function (session) {
     var parameters = {
 	location: [25.0783711, 121.5714316],
 	types: "food|restaurant",
@@ -162,48 +206,9 @@ bot.dialog('/lunch', function (session) {
     };
     places.radarSearch(parameters, function (error, response) {
         if (error) throw error;
-	var results = response.results;
-	var idx = randomIntInc(0, results.length-1);
-	var parameters = {
-	    placeid: results[idx].place_id,
-	    language: "zh-TW"
-	}
-	places.placeDetailsRequest(parameters, function (error, response) {
-	    var target = response.result;
-	    var loc = target.geometry.location;
-	    var msg = new builder.Message(session)
-		.textFormat(builder.TextFormat.xml)
-		.attachments([
-		    new builder.HeroCard(session)
-		    .text(
-			'建議今天吃『'+target.name+'』<br/>'+
-			'評價: '+(target.rating||'未知')+' 顆星<br/>'+
-			'價位: '+(price_str[target.price_level]||'未知')+'<br/>'+
-			'地址: '+target.vicinity+'<br/>'+
-			'電話: '+target.formatted_phone_number
-		    )
-		    .images([
-			builder.CardImage.create(session, "http://maps.google.com/maps/api/staticmap?markers="+loc.lat+","+loc.lng+"&size=400x400&zoom=19")
-		    ])
-		]);
-	    session.send(msg);
-	});
+	sendRandomPlaceInfoCard(session, response.results);
     });
     session.endDialog();
-});
-
-bot.dialog('/lunch-old', function (session) {
-    var idx = randomIntInc(0, stores.length-1);
-    var msg = new builder.Message(session)
-	.textFormat(builder.TextFormat.xml)
-	.attachments([
-	    new builder.HeroCard(session)
-	    .text('建議今天吃'+stores[idx].name+'')
-	    .images([
-		builder.CardImage.create(session, "http://maps.google.com/maps/api/staticmap?markers="+stores[idx].latitude+","+stores[idx].longitude+"&size=400x400&zoom=19")
-	    ])
-	]);
-    session.endDialog(msg);
 });
 
 bot.dialog('/hello', function (session) {
