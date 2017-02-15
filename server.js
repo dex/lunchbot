@@ -247,12 +247,14 @@ bot.dialog('/reviews', [
 	    if (reviews) {
 		var reviewCards = [];
 		reviews.forEach(function (review) {
+		    var photo = [];
+		    if (review.profile_photo_url) {
+			photo.push(builder.CardImage.create(session,'https:'+review.profile_photo_url));
+		    }
 		    reviewCards.push(new builder.ThumbnailCard(session)
 			.text('評價: '+ratingToStars(review.rating)+'<br/><br/>'+
 			    '〝'+review.text+'“ -- <i>'+review.author_name+'</i>')
-			.images([
-			    //builder.CardImage.create(session, 'https:'+review.profile_photo_url)
-			])
+			.images(photo)
 		    );
 		});
 		msg = new builder.Message(session)
