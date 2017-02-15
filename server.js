@@ -255,6 +255,7 @@ bot.dialog('/reviews', [
 			.text('評價: '+ratingToStars(review.rating)+'<br/><br/>'+
 			    '〝'+review.text+'“ -- <i>'+review.author_name+'</i>')
 			.images(photo)
+			.tap(builder.CardAction.openUrl(session, review.author_url))
 		    );
 		});
 		msg = new builder.Message(session)
