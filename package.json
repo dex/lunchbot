@@ -21,6 +21,7 @@
   "homepage": "https://github.com/dex/lunchbot#readme",
   "dependencies": {
     "botbuilder": "^3.6.0",
+    "googleplaces": "^0.6.1",
     "restify": "^4.0.4"
   }
 }
