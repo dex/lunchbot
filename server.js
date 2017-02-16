@@ -5,6 +5,9 @@
 
   -----------------------------------------------------------------------------*/
 
+// This loads the environment variables from the .env file
+require('dotenv-extended').load();
+
 var restify = require('restify');
 var builder = require('botbuilder');
 var GooglePlaces = require('googleplaces');
@@ -119,7 +122,7 @@ bot.use(builder.Middleware.dialogVersion({ version: 12.0, resetCommand: /^reset/
 //=========================================================
 
 bot.endConversationAction('goodbye', 'Goodbye :)', { matches: /^goodbye/i });
-//bot.beginDialogAction('lunch', '/lunch', { matches: /^lunch/i });
+bot.beginDialogAction('lunch', '/lunch', { matches: /^lunch/i });
 
 //=========================================================
 // Bots Dialogs
@@ -139,6 +142,7 @@ var favorites = [
 { place_id:'ChIJM_CA62WsQjQRcCzjcrYMI-4' }, // '越南美食'
 { place_id:'ChIJhTzhxm-sQjQRPc_xAdkk3_k' }, // '洲子美食街'
 { place_id:'ChIJPYTgGWWsQjQRPJOWXnjc0b0' }, // '自由廣場'
+{ place_id:'ChIJhbuP82WsQjQRDHnYL4faQKc' }, // '珍寶廚房'
 ];
 
 var price_str = ['免費', '便宜', '適中', '昂貴', '非常昂貴'];
@@ -184,6 +188,7 @@ function sendRandomPlaceInfoCard (session, results) {
         placeid: results[idx].place_id,
         language: "zh-TW"
     }
+    session.sendTyping();
     places.placeDetailsRequest(parameters, function (error, response) {
         var msg = new builder.Message(session)
             .textFormat(builder.TextFormat.xml)
@@ -196,20 +201,13 @@ var myLuisURL= process.env.LUIS_URL;
 var recognizer = new builder.LuisRecognizer(myLuisURL);
 
 bot.dialog('/', new builder.IntentDialog({recognizers:[recognizer]})
-           .matches(/^lunch/i, '/lunch')
-           .matches('Lunch', '/lunch')
+           .matches('Lunch', '/lunchNearby')
            .matches('Hello', '/hello')
            .matches('Chinese', '/chinese')
            .onDefault(builder.DialogAction.send("I'm sorry. I didn't understand.")));
 
 bot.dialog('/lunch', function (session, args) {
-    var nearby = builder.EntityRecognizer.findEntity(args.entities, 'nearby');
-    if (nearby) {
-        session.beginDialog('/lunchNearby');
-        session.endDialog();
-    } else {
         sendRandomPlaceInfoCard(session, favorites);
-    }
 });
 
 bot.dialog('/lunchNearby', function (session) {
@@ -218,6 +216,7 @@ bot.dialog('/lunchNearby', function (session) {
         types: "food|restaurant",
         language: "zh-TW"
     };
+    session.sendTyping();
     places.radarSearch(parameters, function (error, response) {
         if (error) throw error;
         sendRandomPlaceInfoCard(session, response.results);
@@ -238,6 +237,7 @@ bot.dialog('/reviews', [
                    placeid: args.data,
                    language: "zh-TW"
                };
+               session.sendTyping();
                places.placeDetailsRequest(parameters, function (error, response) {
                    var place = response.result;
                    var reviews = place.reviews;
