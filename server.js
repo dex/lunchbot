@@ -189,7 +189,7 @@ function sendRandomPlaceInfoCard (session, results) {
 	var msg = new builder.Message(session)
 	    .textFormat(builder.TextFormat.xml)
 	    .attachments([newPlaceInfoCard(session, response.result)]);
-	session.send(msg);
+	session.endDialog(msg);
     });
 }
 
@@ -207,10 +207,10 @@ bot.dialog('/lunch', function (session, args) {
     var nearby = builder.EntityRecognizer.findEntity(args.entities, 'nearby');
     if (nearby) {
 	session.beginDialog('/lunchNearby');
+	session.endDialog();
     } else {
 	sendRandomPlaceInfoCard(session, favorites);
     }
-    session.endDialog();
 });
 
 bot.dialog('/lunchNearby', function (session) {
@@ -223,7 +223,6 @@ bot.dialog('/lunchNearby', function (session) {
         if (error) throw error;
 	sendRandomPlaceInfoCard(session, response.results);
     });
-    session.endDialog();
 });
 
 bot.dialog('/hello', function (session) {
@@ -266,9 +265,8 @@ bot.dialog('/reviews', [
 		msg = "尚無評論";
 	    }
 	    //console.log(JSON.stringify(msg.toMessage()));
-	    session.send(msg);
+	    session.endDialog(msg);
 	});
-	session.endDialog();
     }
 ]);
 bot.beginDialogAction('reviews', '/reviews');
