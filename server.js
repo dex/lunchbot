@@ -2,6 +2,7 @@
   A bot for lunch decision.
 
   Author: Dex Chen (chienhua@gmail.com)
+
   -----------------------------------------------------------------------------*/
 
 var restify = require('restify');
@@ -268,3 +269,5 @@ bot.dialog('/reviews', [
            }
 ]);
 bot.beginDialogAction('reviews', '/reviews');
+
+/* vim: set et sw=4: */
