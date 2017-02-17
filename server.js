@@ -114,6 +114,27 @@ builder.Middleware.convertSkypeGroupMessages = function() {
 // convert skype group messages till better times
 bot.use(builder.Middleware.convertSkypeGroupMessages());
 
+builder.Middleware.convertFacebookPlaceMessages = function() {
+    return {
+        botbuilder: function (session, next) {
+            var message = session.message;
+            var address = message.address;
+            if (address.channelId === "facebook") {
+                if (message.entities.length > 0) {
+                    message.entities.forEach((entity) => {
+                        if (entity.type == "Place" && entity.geo && entity.geo.type == "GeoCoordinates") {
+                            console.log('geo => %j', entity.geo);
+                            // TODO: covert geo info
+                        }
+                    });
+                }
+            }
+            next();
+        }
+    }
+};
+bot.use(builder.Middleware.convertFacebookPlaceMessages());
+
 // Anytime the major version is incremented any existing conversations will be restarted.
 bot.use(builder.Middleware.dialogVersion({ version: 12.0, resetCommand: /^reset/i }));
 
@@ -123,6 +144,7 @@ bot.use(builder.Middleware.dialogVersion({ version: 12.0, resetCommand: /^reset/
 
 bot.endConversationAction('goodbye', 'Goodbye :)', { matches: /^goodbye/i });
 bot.beginDialogAction('lunch', '/lunch', { matches: /^lunch/i });
+bot.beginDialogAction('search', '/search', { matches: /^search/i });
 
 //=========================================================
 // Bots Dialogs
@@ -270,4 +292,13 @@ bot.dialog('/reviews', [
 ]);
 bot.beginDialogAction('reviews', '/reviews');
 
+bot.dialog('/search', [
+           function (session, args) {
+               builder.Prompts.text(session, "where are you?");
+           },
+           function (session, results) {
+               console.log("results => %j", results);
+               session.endDialog("Thank you.");
+           }
+]);
 /* vim: set et sw=4: */
