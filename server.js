@@ -143,7 +143,7 @@ bot.use(builder.Middleware.dialogVersion({ version: 12.0, resetCommand: /^reset/
 
 bot.endConversationAction('goodbye', 'Goodbye :)', { matches: /^goodbye/i });
 bot.beginDialogAction('lunch', '/lunch', { matches: /^lunch/i });
-bot.beginDialogAction('search', '/setCenter', { matches: /^search/i });
+bot.beginDialogAction('setup', '/setCenter', { matches: /^setup/i });
 
 //=========================================================
 // Bots Dialogs
@@ -227,6 +227,7 @@ bot.dialog('/', new builder.IntentDialog({recognizers:[recognizer]})
            .matches('Lunch', '/lunchNearby')
            .matches('Hello', '/hello')
            .matches('Chinese', '/chinese')
+           .matches('Setup', '/setCenter')
            .onDefault(builder.DialogAction.send("I'm sorry. I didn't understand.")));
 
 bot.dialog('/lunch', function (session, args) {
