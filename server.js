@@ -124,7 +124,6 @@ builder.Middleware.convertFacebookPlaceMessages = function() {
                     message.entities.forEach((entity) => {
                         if (entity.type == "Place" && entity.geo && entity.geo.type == "GeoCoordinates") {
                             console.log('geo => %j', entity.geo);
-                            // TODO: covert geo info
                         }
                     });
                 }
@@ -133,7 +132,7 @@ builder.Middleware.convertFacebookPlaceMessages = function() {
         }
     }
 };
-bot.use(builder.Middleware.convertFacebookPlaceMessages());
+//bot.use(builder.Middleware.convertFacebookPlaceMessages());
 
 // Anytime the major version is incremented any existing conversations will be restarted.
 bot.use(builder.Middleware.dialogVersion({ version: 12.0, resetCommand: /^reset/i }));
@@ -144,7 +143,7 @@ bot.use(builder.Middleware.dialogVersion({ version: 12.0, resetCommand: /^reset/
 
 bot.endConversationAction('goodbye', 'Goodbye :)', { matches: /^goodbye/i });
 bot.beginDialogAction('lunch', '/lunch', { matches: /^lunch/i });
-bot.beginDialogAction('search', '/search', { matches: /^search/i });
+bot.beginDialogAction('search', '/setCenter', { matches: /^search/i });
 
 //=========================================================
 // Bots Dialogs
@@ -232,18 +231,36 @@ bot.dialog('/lunch', function (session, args) {
         sendRandomPlaceInfoCard(session, favorites);
 });
 
-bot.dialog('/lunchNearby', function (session) {
-    var parameters = {
-        location: [25.0783711, 121.5714316],
-        types: "food|restaurant",
-        language: "zh-TW"
-    };
-    session.sendTyping();
-    places.radarSearch(parameters, function (error, response) {
-        if (error) throw error;
-        sendRandomPlaceInfoCard(session, response.results);
-    });
-});
+bot.dialog('/lunchNearby', [
+           function (session, args, next) {
+               if (session.message.source == "facebook") {
+                   if (!session.userData.coordinates) {
+                       session.beginDialog('/setCenter');
+                   } else {
+                       var coordinates = session.userData.coordinates;
+                       next({ response: coordinates });
+                   }
+               } else {
+                   next({ response: [25.0783711, 121.5714316] });
+               }
+           },
+           function (session, results) {
+               if (results.response) {
+                   var parameters = {
+                       location: results.response,
+                       types: "food|restaurant",
+                       language: "zh-TW"
+                   };
+                   session.sendTyping();
+                   places.radarSearch(parameters, function (error, response) {
+                       if (error) throw error;
+                       sendRandomPlaceInfoCard(session, response.results);
+                   });
+               } else {
+                   session.endDialog();
+               }
+           }
+]);
 
 bot.dialog('/hello', function (session) {
     session.endDialog('Hi 您好 :)');
@@ -285,20 +302,45 @@ bot.dialog('/reviews', [
                    } else {
                        msg = "尚無評論";
                    }
-                   //console.log(JSON.stringify(msg.toMessage()));
+                   //console.log('reviews => %j', msg.toMessage());
                    session.endDialog(msg);
                });
            }
 ]);
 bot.beginDialogAction('reviews', '/reviews');
 
-bot.dialog('/search', [
+bot.dialog('/setCenter', [
            function (session, args) {
-               builder.Prompts.text(session, "where are you?");
+               if (session.message.source == 'facebook') {
+                   var replyMessage = new builder.Message(session)
+                       .text("請輸入您的位置");
+                   replyMessage.sourceEvent({
+                       facebook: {
+                           quick_replies: [{ content_type:"location" }]
+                       }
+                   });
+                   builder.Prompts.text(session, replyMessage);
+               } else {
+                   // TODO: using google place API
+                   // builder.Prompts.text(session, "where are you?");
+                   session.endDialog();
+               }
            },
            function (session, results) {
-               console.log("results => %j", results);
-               session.endDialog("Thank you.");
+               var message = session.message;
+               var done = false;
+               if (message.entities && message.entities.length > 0) {
+                   message.entities.forEach(function (entity) {
+                       if (entity.type == "Place" && entity.geo) {
+                           var coordinates = [entity.geo.latitude, entity.geo.longitude];
+                           session.userData.coordinates = coordinates;
+                           done = true;
+                           session.endDialogWithResult({ response: coordinates });
+                       }
+                   });
+               }
+               session.send('設置'+ (done ? '完成' : '失敗'));
+               session.sendBatch();
            }
 ]);
 /* vim: set et sw=4: */
