@@ -192,10 +192,10 @@ function newPlaceInfoCard (session, place) {
     var loc = place.geometry.location;
     return new builder.HeroCard(session)
         .text(
-              '建議今天吃『'+place.name+'』<br/>'+
-              '評價: '+ratingToStars(place.rating)+'<br/>'+
-              '價位: '+(priceStr[place.price_level]||'未知')+'<br/>'+
-              '地址: '+place.vicinity+'<br/>'+
+              '建議今天吃『'+place.name+'』\n\n'+
+              '評價: '+ratingToStars(place.rating)+'\n\n'+
+              '價位: '+(priceStr[place.price_level]||'未知')+'\n\n'+
+              '地址: '+place.vicinity+'\n\n'+
               '電話: '+place.formatted_phone_number
              )
         .images([
@@ -299,7 +299,7 @@ bot.dialog('/reviews', [
                            }
                            photo.push(builder.CardImage.create(session,'https:'+review.profile_photo_url));
                            reviewCards.push(new builder.ThumbnailCard(session)
-                                            .text('評價: '+ratingToStars(review.rating)+'<br/><br/>'+
+                                            .text('評價: '+ratingToStars(review.rating)+'\n\n\n\n'+
                                                   '〝'+review.text+'“ -- <i>'+review.author_name+'</i>')
                                             .images(photo)
                                             .tap(builder.CardAction.openUrl(session, review.author_url))
