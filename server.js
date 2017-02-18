@@ -151,20 +151,20 @@ bot.beginDialogAction('help', '/help', { matches: /^help/i });
 //=========================================================
 
 var favorites = [
-{ place_id:'ChIJZYEp0G6sQjQR36eMZVvdz7s' }, // '排骨飯'
-{ place_id:'ChIJTStVq46sQjQRzbIyp3EQa3Q' }, // '周胖子'
-{ place_id:'ChIJF22dNnusQjQRLAH1mPaURcQ' }, // '東葉豬腳(港漧)'
-{ place_id:'ChIJzRrJaW-sQjQRR5bO8cu1CZc' }, // '濟州豆腐鍋之家'
-{ place_id:'ChIJt_iri2WsQjQRPBGHT3nuFtc' }, // '溫州大餛飩'
-{ place_id:'ChIJjUwXm26sQjQR7m5vw-drWx8' }, // '小廚櫃'
-{ place_id:'ChIJE_PiNHusQjQRmDvK62M_SHk' }, // '阿婧姑麻油雞(港漧)'
-{ place_id:'ChIJkc-rNXusQjQRaahdgDUtq-A' }, // '秋家麵疙瘩(港漧)'
-{ place_id:'ChIJgcjK7WWsQjQR-YUHbPvHkOk' }, // '江記'
-{ place_id:'ChIJ6cR16mWsQjQRqrfDjuRRkic' }, // '麗山餃子館'
-{ place_id:'ChIJM_CA62WsQjQRcCzjcrYMI-4' }, // '越南美食'
-{ place_id:'ChIJhTzhxm-sQjQRPc_xAdkk3_k' }, // '洲子美食街'
-{ place_id:'ChIJPYTgGWWsQjQRPJOWXnjc0b0' }, // '自由廣場'
-{ place_id:'ChIJhbuP82WsQjQRDHnYL4faQKc' }, // '珍寶廚房'
+    { place_id:'ChIJZYEp0G6sQjQR36eMZVvdz7s' }, // '排骨飯'
+    { place_id:'ChIJTStVq46sQjQRzbIyp3EQa3Q' }, // '周胖子'
+    { place_id:'ChIJF22dNnusQjQRLAH1mPaURcQ' }, // '東葉豬腳(港漧)'
+    { place_id:'ChIJzRrJaW-sQjQRR5bO8cu1CZc' }, // '濟州豆腐鍋之家'
+    { place_id:'ChIJt_iri2WsQjQRPBGHT3nuFtc' }, // '溫州大餛飩'
+    { place_id:'ChIJjUwXm26sQjQR7m5vw-drWx8' }, // '小廚櫃'
+    { place_id:'ChIJE_PiNHusQjQRmDvK62M_SHk' }, // '阿婧姑麻油雞(港漧)'
+    { place_id:'ChIJkc-rNXusQjQRaahdgDUtq-A' }, // '秋家麵疙瘩(港漧)'
+    { place_id:'ChIJgcjK7WWsQjQR-YUHbPvHkOk' }, // '江記'
+    { place_id:'ChIJ6cR16mWsQjQRqrfDjuRRkic' }, // '麗山餃子館'
+    { place_id:'ChIJM_CA62WsQjQRcCzjcrYMI-4' }, // '越南美食'
+    { place_id:'ChIJhTzhxm-sQjQRPc_xAdkk3_k' }, // '洲子美食街'
+    { place_id:'ChIJPYTgGWWsQjQRPJOWXnjc0b0' }, // '自由廣場'
+    { place_id:'ChIJhbuP82WsQjQRDHnYL4faQKc' }, // '珍寶廚房'
 ];
 
 var priceStr = ['免費', '便宜', '適中', '昂貴', '非常昂貴'];
@@ -191,19 +191,20 @@ function ratingToStars (rating) {
 function newPlaceInfoCard (session, place) {
     var loc = place.geometry.location;
     return new builder.HeroCard(session)
+        .title(place.name)
+        .subtitle('評價: '+ratingToStars(place.rating))
         .text(
-              '建議今天吃『'+place.name+'』\n'+
-              '評價: '+ratingToStars(place.rating)+'\n'+
-              '價位: '+(priceStr[place.price_level]||'未知')+'\n'+
-              '地址: '+place.vicinity+'\n'+
-              '電話: '+place.formatted_phone_number
-             )
+            '價位: '+(priceStr[place.price_level]||'未知')+'\n'+
+            '地址: '+place.vicinity+'\n'+
+            '電話: '+place.formatted_phone_number
+        )
         .images([
-                builder.CardImage.create(session, googleStaticMapImage(loc.lat, loc.lng))
+            builder.CardImage.create(session, googleStaticMapImage(loc.lat, loc.lng))
         ])
         .buttons([
-                 builder.CardAction.dialogAction(session, 'reviews', place.place_id, '查看評論'),
-                 builder.CardAction.openUrl(session, place.url, '開啟 Google Map')
+            builder.CardAction.dialogAction(session, 'reviews', place.place_id, '查看評論'),
+            builder.CardAction.openUrl(session, place.url, '開啟 Google Map'),
+            builder.CardAction.dialogAction(session, 'lunchNearby', '', '下一家')
         ]) ;
 }
 
@@ -226,49 +227,50 @@ var myLuisURL= process.env.LUIS_URL;
 var recognizer = new builder.LuisRecognizer(myLuisURL);
 
 bot.dialog('/', new builder.IntentDialog({recognizers:[recognizer]})
-           .matches('Lunch', '/lunchNearby')
-           .matches('Hello', '/hello')
-           .matches('Chinese', '/chinese')
-           .matches('Setup', '/setLocation')
-           .matches('Help', '/help')
-           .onDefault(function (session) {
-               session.endDialog("I'm sorry. I didn't understand, please type 'help' for detailed usage.");
-           }));
+    .matches('Lunch', '/lunchNearby')
+    .matches('Hello', '/hello')
+    .matches('Chinese', '/chinese')
+    .matches('Setup', '/setLocation')
+    .matches('Help', '/help')
+    .onDefault(function (session) {
+        session.endDialog("I'm sorry. I didn't understand, please type 'help' for detailed usage.");
+    }));
 
 bot.dialog('/lunch', function (session, args) {
-        sendRandomPlaceInfoCard(session, favorites);
+    sendRandomPlaceInfoCard(session, favorites);
 });
 
 bot.dialog('/lunchNearby', [
-           function (session, args, next) {
-               if (session.message.source == "facebook") {
-                   if (!session.userData.coordinates) {
-                       session.beginDialog('/setLocation');
-                   } else {
-                       var coordinates = session.userData.coordinates;
-                       next({ response: coordinates });
-                   }
-               } else {
-                   next({ response: defaultLocation });
-               }
-           },
-           function (session, results) {
-               if (results.response) {
-                   var parameters = {
-                       location: results.response,
-                       types: "food|restaurant",
-                       language: "zh-TW"
-                   };
-                   session.sendTyping();
-                   places.radarSearch(parameters, function (error, response) {
-                       if (error) throw error;
-                       sendRandomPlaceInfoCard(session, response.results);
-                   });
-               } else {
-                   session.endDialog();
-               }
-           }
+    function (session, args, next) {
+        if (session.message.source == "facebook") {
+            if (!session.userData.coordinates) {
+                session.beginDialog('/setLocation');
+            } else {
+                var coordinates = session.userData.coordinates;
+                next({ response: coordinates });
+            }
+        } else {
+            next({ response: defaultLocation });
+        }
+    },
+    function (session, results) {
+        if (results.response) {
+            var parameters = {
+                location: results.response,
+                types: "food|restaurant",
+                language: "zh-TW"
+            };
+            session.sendTyping();
+            places.radarSearch(parameters, function (error, response) {
+                if (error) throw error;
+                sendRandomPlaceInfoCard(session, response.results);
+            });
+        } else {
+            session.endDialog();
+        }
+    }
 ]);
+bot.beginDialogAction('lunchNearby', '/lunchNearby');
 
 bot.dialog('/hello', function (session) {
     session.send('Hi 您好 :)');
@@ -280,84 +282,85 @@ bot.dialog('/chinese', function (session) {
 });
 
 bot.dialog('/reviews', [
-           function (session, args) {
-               var parameters = {
-                   placeid: args.data,
-                   language: "zh-TW"
-               };
-               session.sendTyping();
-               places.placeDetailsRequest(parameters, function (error, response) {
-                   var place = response.result;
-                   var reviews = place.reviews;
-                   var msg;
-                   if (reviews) {
-                       var reviewCards = [];
-                       reviews.forEach(function (review) {
-                           var photo = [];
-                           if (!review.profile_photo_url) {
-                               review.profile_photo_url = defaultReviewerPhoto;
-                           }
-                           photo.push(builder.CardImage.create(session,'https:'+review.profile_photo_url));
-                           reviewCards.push(new builder.ThumbnailCard(session)
-                                            .text('評價: '+ratingToStars(review.rating)+'\n\n'+
-                                                  '〝'+review.text+'“ -- <i>'+review.author_name+'</i>')
-                                            .images(photo)
-                                            .tap(builder.CardAction.openUrl(session, review.author_url))
-                                           );
-                       });
-                       msg = new builder.Message(session)
-                           .textFormat(builder.TextFormat.xml)
-                           .attachmentLayout(builder.AttachmentLayout.carousel)
-                           .attachments(reviewCards);
-                   } else {
-                       msg = "尚無評論";
-                   }
-                   //console.log('reviews => %j', msg.toMessage());
-                   session.endDialog(msg);
-               });
-           }
+    function (session, args) {
+        var parameters = {
+            placeid: args.data,
+            language: "zh-TW"
+        };
+        session.sendTyping();
+        places.placeDetailsRequest(parameters, function (error, response) {
+            var place = response.result;
+            var reviews = place.reviews;
+            var msg;
+            if (reviews) {
+                var reviewCards = [];
+                reviews.forEach(function (review) {
+                    var photo = [];
+                    if (!review.profile_photo_url) {
+                        review.profile_photo_url = defaultReviewerPhoto;
+                    }
+                    photo.push(builder.CardImage.create(session,'https:'+review.profile_photo_url));
+                    reviewCards.push(new builder.ThumbnailCard(session)
+                        .title('評價: '+ratingToStars(review.rating))
+                        .subtitle(review.author_name)
+                        .text(review.text)
+                        .images(photo)
+                        .tap(builder.CardAction.openUrl(session, review.author_url))
+                    );
+                });
+                msg = new builder.Message(session)
+                    .textFormat(builder.TextFormat.xml)
+                    .attachmentLayout(builder.AttachmentLayout.carousel)
+                    .attachments(reviewCards);
+            } else {
+                msg = "尚無評論";
+            }
+            //console.log('reviews => %j', msg.toMessage());
+            session.endDialog(msg);
+        });
+    }
 ]);
 bot.beginDialogAction('reviews', '/reviews');
 
 bot.dialog('/setLocation', [
-           function (session, args) {
-               if (session.message.source == 'facebook') {
-                   var replyMessage = new builder.Message(session)
-                       .text("請輸入您的位置");
-                   replyMessage.sourceEvent({
-                       facebook: {
-                           quick_replies: [{ content_type:"location" }]
-                       }
-                   });
-                   builder.Prompts.text(session, replyMessage);
-               } else {
-                   // TODO: using google place API
-                   // builder.Prompts.text(session, "where are you?");
-                   session.endDialog("此指令目前只支援 Facebook Messenger");
-               }
-           },
-           function (session, results) {
-               var message = session.message;
-               var done = false;
-               if (message.entities && message.entities.length > 0) {
-                   message.entities.forEach(function (entity) {
-                       if (entity.type == "Place" && entity.geo) {
-                           var coordinates = [entity.geo.latitude, entity.geo.longitude];
-                           session.userData.coordinates = coordinates;
-                           done = true;
-                           session.endDialogWithResult({ response: coordinates });
-                       }
-                   });
-               }
-               session.send('設置'+ (done ? '完成' : '失敗'));
-               session.sendBatch();
-           }
+    function (session, args) {
+        if (session.message.source == 'facebook') {
+            var replyMessage = new builder.Message(session)
+                .text("請輸入您的位置");
+            replyMessage.sourceEvent({
+                facebook: {
+                    quick_replies: [{ content_type:"location" }]
+                }
+            });
+            builder.Prompts.text(session, replyMessage);
+        } else {
+            // TODO: using google place API
+            // builder.Prompts.text(session, "where are you?");
+            session.endDialog("此指令目前只支援 Facebook Messenger");
+        }
+    },
+    function (session, results) {
+        var message = session.message;
+        var done = false;
+        if (message.entities && message.entities.length > 0) {
+            message.entities.forEach(function (entity) {
+                if (entity.type == "Place" && entity.geo) {
+                    var coordinates = [entity.geo.latitude, entity.geo.longitude];
+                    session.userData.coordinates = coordinates;
+                    done = true;
+                    session.endDialogWithResult({ response: coordinates });
+                }
+            });
+        }
+        session.send('設置'+ (done ? '完成' : '失敗'));
+        session.sendBatch();
+    }
 ]);
 
 bot.dialog('/help', function(session) {
     session.endDialog("這是一個推薦用餐地點的機器人，目前支援下列指令:\n\n"+
-    "  '吃什麼' -- 推薦用餐地點\n\n"+
-    "  '設置', -- 設定您目前位置, 目前僅支援 Facebook Messenger\n\n"+
-    "  'help' -- 顯示本訊息");
+        "  '吃什麼' -- 推薦用餐地點\n\n"+
+        "  '設置', -- 設定您目前位置, 目前僅支援 Facebook Messenger\n\n"+
+        "  'help' -- 顯示本訊息");
 });
 /* vim: set et sw=4: */
