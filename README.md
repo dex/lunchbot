@@ -15,7 +15,9 @@ The following environment variables must be set correctly.
   * `LUIS_URL` is the URL of your published [LUIS](https://www.luis.ai/) application.
   * `GOOGLE_PLACES_API_KEY` is the application key used for [Google Places Web Service API](https://developers.google.com/places/web-service/).
 
-## Bot channels
+Suggest deploying your app to [Azure](Azure.microsoft.com), it provides free subscription.
+
+## Demo channels
 |Channel|Link|
 |-------|----|
 |Skype|[![Skype](https://dev.botframework.com/Client/Images/Add-To-Skype-Buttons.png)](https://join.skype.com/bot/02e45d25-e8bb-4d53-88a5-aa9ac58cf8ab)|
