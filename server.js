@@ -143,7 +143,8 @@ bot.use(builder.Middleware.dialogVersion({ version: 12.0, resetCommand: /^reset/
 
 bot.endConversationAction('goodbye', 'Goodbye :)', { matches: /^goodbye/i });
 bot.beginDialogAction('lunch', '/lunch', { matches: /^lunch/i });
-bot.beginDialogAction('setup', '/setCenter', { matches: /^setup/i });
+bot.beginDialogAction('setup', '/setLocation', { matches: /^setup/i });
+bot.beginDialogAction('help', '/help', { matches: /^help/i });
 
 //=========================================================
 // Bots Dialogs
@@ -166,9 +167,10 @@ var favorites = [
 { place_id:'ChIJhbuP82WsQjQRDHnYL4faQKc' }, // '珍寶廚房'
 ];
 
-var price_str = ['免費', '便宜', '適中', '昂貴', '非常昂貴'];
+var priceStr = ['免費', '便宜', '適中', '昂貴', '非常昂貴'];
 
 var defaultReviewerPhoto = '//ssl.gstatic.com/images/branding/product/2x/avatar_square_blue_512dp.png'
+var defaultLocation = [25.0783711, 121.5714316];
 
 function randomIntInc (low, high) {
     return Math.floor(Math.random() * (high - low + 1) + low);
@@ -192,7 +194,7 @@ function newPlaceInfoCard (session, place) {
         .text(
               '建議今天吃『'+place.name+'』<br/>'+
               '評價: '+ratingToStars(place.rating)+'<br/>'+
-              '價位: '+(price_str[place.price_level]||'未知')+'<br/>'+
+              '價位: '+(priceStr[place.price_level]||'未知')+'<br/>'+
               '地址: '+place.vicinity+'<br/>'+
               '電話: '+place.formatted_phone_number
              )
@@ -227,8 +229,11 @@ bot.dialog('/', new builder.IntentDialog({recognizers:[recognizer]})
            .matches('Lunch', '/lunchNearby')
            .matches('Hello', '/hello')
            .matches('Chinese', '/chinese')
-           .matches('Setup', '/setCenter')
-           .onDefault(builder.DialogAction.send("I'm sorry. I didn't understand.")));
+           .matches('Setup', '/setLocation')
+           .matches('Help', '/help')
+           .onDefault(function (session) {
+               session.endDialog("I'm sorry. I didn't understand, please type 'help' for detailed usage.");
+           }));
 
 bot.dialog('/lunch', function (session, args) {
         sendRandomPlaceInfoCard(session, favorites);
@@ -238,13 +243,13 @@ bot.dialog('/lunchNearby', [
            function (session, args, next) {
                if (session.message.source == "facebook") {
                    if (!session.userData.coordinates) {
-                       session.beginDialog('/setCenter');
+                       session.beginDialog('/setLocation');
                    } else {
                        var coordinates = session.userData.coordinates;
                        next({ response: coordinates });
                    }
                } else {
-                   next({ response: [25.0783711, 121.5714316] });
+                   next({ response: defaultLocation });
                }
            },
            function (session, results) {
@@ -266,7 +271,8 @@ bot.dialog('/lunchNearby', [
 ]);
 
 bot.dialog('/hello', function (session) {
-    session.endDialog('Hi 您好 :)');
+    session.send('Hi 您好 :)');
+    session.beginDialog('/help');
 });
 
 bot.dialog('/chinese', function (session) {
@@ -313,7 +319,7 @@ bot.dialog('/reviews', [
 ]);
 bot.beginDialogAction('reviews', '/reviews');
 
-bot.dialog('/setCenter', [
+bot.dialog('/setLocation', [
            function (session, args) {
                if (session.message.source == 'facebook') {
                    var replyMessage = new builder.Message(session)
@@ -327,7 +333,7 @@ bot.dialog('/setCenter', [
                } else {
                    // TODO: using google place API
                    // builder.Prompts.text(session, "where are you?");
-                   session.endDialog();
+                   session.endDialog("此指令目前只支援 Facebook Messenger");
                }
            },
            function (session, results) {
@@ -347,4 +353,11 @@ bot.dialog('/setCenter', [
                session.sendBatch();
            }
 ]);
+
+bot.dialog('/help', function(session) {
+    session.endDialog("這是一個推薦用餐地點的機器人，目前支援下列指令:\n\n"+
+    "  '吃什麼' -- 推薦用餐起點\n\n"+
+    "  '設置', -- 設定您目前位置, 目前僅支援 Facebook Messenger\n\n"+
+    "  'help' -- 顯示本訊息");
+});
 /* vim: set et sw=4: */
