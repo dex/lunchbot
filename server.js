@@ -257,7 +257,7 @@ bot.dialog('/lunchNearby', [
         if (results.response) {
             var parameters = {
                 location: results.response,
-                types: "food|restaurant",
+                types: "restaurant",
                 language: "zh-TW"
             };
             session.sendTyping();
