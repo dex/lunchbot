@@ -271,7 +271,8 @@ bot.dialog('/lunchNearby', [
 ]);
 
 bot.dialog('/hello', function (session) {
-    session.endDialog('Hi 您好 :)');
+    session.send('Hi 您好 :)');
+    session.beginDialog('/help');
 });
 
 bot.dialog('/chinese', function (session) {
