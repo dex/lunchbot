@@ -356,7 +356,7 @@ bot.dialog('/setLocation', [
 
 bot.dialog('/help', function(session) {
     session.endDialog("這是一個推薦用餐地點的機器人，目前支援下列指令:\n\n"+
-    "  '吃什麼' -- 推薦用餐起點\n\n"+
+    "  '吃什麼' -- 推薦用餐地點\n\n"+
     "  '設置', -- 設定您目前位置, 目前僅支援 Facebook Messenger\n\n"+
     "  'help' -- 顯示本訊息");
 });
