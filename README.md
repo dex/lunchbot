@@ -15,7 +15,7 @@ The following environment variables must be set correctly.
   * `LUIS_URL` is the URL of your published [LUIS](https://www.luis.ai/) application.
   * `GOOGLE_PLACES_API_KEY` is the application key used for [Google Places Web Service API](https://developers.google.com/places/web-service/).
 
-Suggest deploying your app to [Azure](Azure.microsoft.com), it provides free subscription.
+Suggest deploying your app to [Azure](https://azure.microsoft.com/), it provides free subscription.
 
 ## Demo channels
 |Channel|Link|
