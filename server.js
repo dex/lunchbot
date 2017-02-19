@@ -217,6 +217,7 @@ function sendRandomPlaceInfoCard (session, results) {
     }
     session.sendTyping();
     places.placeDetailsRequest(parameters, function (error, response) {
+        if (error) throw error;
         var msg = new builder.Message(session)
             .textFormat(builder.TextFormat.xml)
             .attachments([newPlaceInfoCard(session, response.result)]);
@@ -243,15 +244,11 @@ bot.dialog('/lunch', function (session, args) {
 
 bot.dialog('/suggest', [
     function (session, args, next) {
-        if (session.message.source == "facebook") {
-            if (!session.userData.coordinates) {
-                session.beginDialog('/setLocation');
-            } else {
-                var coordinates = session.userData.coordinates;
-                next({ response: coordinates });
-            }
+        if (!session.userData.coordinates) {
+            session.beginDialog('/setLocation');
         } else {
-            next({ response: defaultLocation });
+            var coordinates = session.userData.coordinates;
+            next({ response: coordinates });
         }
     },
     function (session, results) {
@@ -325,42 +322,89 @@ bot.beginDialogAction('reviews', '/reviews');
 bot.dialog('/setLocation', [
     function (session, args) {
         if (session.message.source == 'facebook') {
-            var replyMessage = new builder.Message(session)
-                .text("請輸入您的位置");
-            replyMessage.sourceEvent({
-                facebook: {
-                    quick_replies: [{ content_type:"location" }]
-                }
-            });
-            builder.Prompts.text(session, replyMessage);
+            session.beginDialog('/setLocation/facebook');
         } else {
-            // TODO: using google place API
-            // builder.Prompts.text(session, "where are you?");
-            session.endDialog("此指令目前只支援 Facebook Messenger");
+            session.beginDialog('/setLocation/default');
         }
     },
     function (session, results) {
+        if (results.response) {
+            session.userData.coordinates = results.response;
+        }
+        session.send('設置'+ (results.response ? '完成' : '失敗'));
+        session.endDialogWithResult(results);
+    }
+]);
+
+bot.dialog('/setLocation/facebook', [
+    function (session , args, next) {
+        var replyMessage = new builder.Message(session)
+            .text("請輸入您的位置");
+        replyMessage.sourceEvent({
+            facebook: {
+                quick_replies: [{ content_type:"location" }]
+            }
+        });
+        builder.Prompts.text(session, replyMessage);
+    },
+    function (session, results) {
         var message = session.message;
-        var done = false;
+        var coordinates;
         if (message.entities && message.entities.length > 0) {
             message.entities.forEach(function (entity) {
                 if (entity.type == "Place" && entity.geo) {
-                    var coordinates = [entity.geo.latitude, entity.geo.longitude];
-                    session.userData.coordinates = coordinates;
-                    done = true;
-                    session.endDialogWithResult({ response: coordinates });
+                    coordinates = [entity.geo.latitude, entity.geo.longitude];
                 }
             });
         }
-        session.send('設置'+ (done ? '完成' : '失敗'));
-        session.sendBatch();
+        session.endDialogWithResult({ response: coordinates });
+    }
+]);
+
+bot.dialog('/setLocation/default', [
+    function (session, args, next) {
+        builder.Prompts.text(session, "請輸入您的位置");
+    },
+    function (session, results, next) {
+        var parameters = {
+            query: results.response+"",
+            language: "zh-TW"
+        };
+        places.textSearch(parameters, function (error, response) {
+            if (error) throw error;
+            if (response.results.length > 0) {
+                var place = response.results[0];  // always pick the first one
+                var loc = place.geometry.location;
+                session.dialogData.coordinates = [loc.lat, loc.lng];
+                var msg = new builder.Message(session)
+                    .textFormat(builder.TextFormat.xml)
+                    .attachments([
+                        new builder.HeroCard(session)
+                        .text("是在這個位置嗎？(y/n)")
+                        .images([
+                            builder.CardImage.create(session, googleStaticMapImage(loc.lat, loc.lng))
+                        ])
+                    ]);
+                builder.Prompts.confirm(session, msg);
+            } else {
+                session.endDialog("無法定位你所輸入的位置");
+            }
+        });
+    },
+    function (session, results) {
+        if (results.response) {
+            session.endDialogWithResult({ response: session.dialogData.coordinates });
+        } else {
+            session.send("請提供更精確的位置");
+            session.endDialogWithResult({});
+        }
     }
 ]);
 
 bot.dialog('/help', function(session) {
     session.endDialog("這是一個推薦用餐地點的機器人，目前支援下列指令:\n\n"+
         "  'suggest' 或 '吃什麼' -- 推薦用餐地點\n\n"+
-        "  'setup' 或 '設置', -- 設定您目前位置, 目前僅支援 Facebook Messenger\n\n"+
+        "  'setup' 或 '設置', -- 設定您目前位置\n\n"+
         "  'help' 或 '求助' -- 顯示本訊息");
 });
 /* vim: set et sw=4: */
