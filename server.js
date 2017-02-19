@@ -144,6 +144,7 @@ bot.use(builder.Middleware.dialogVersion({ version: 12.0, resetCommand: /^reset/
 bot.endConversationAction('goodbye', 'Goodbye :)', { matches: /^goodbye/i });
 bot.beginDialogAction('lunch', '/lunch', { matches: /^lunch/i });
 bot.beginDialogAction('setup', '/setLocation', { matches: /^setup/i });
+bot.beginDialogAction('suggest', '/suggest', { matches: /^suggest/i });
 bot.beginDialogAction('help', '/help', { matches: /^help/i });
 
 //=========================================================
@@ -204,7 +205,7 @@ function newPlaceInfoCard (session, place) {
         .buttons([
             builder.CardAction.dialogAction(session, 'reviews', place.place_id, '查看評論'),
             builder.CardAction.openUrl(session, place.url, '開啟 Google Map'),
-            builder.CardAction.dialogAction(session, 'lunchNearby', '', '下一家')
+            builder.CardAction.dialogAction(session, 'suggest', '', '下一家')
         ]) ;
 }
 
@@ -227,7 +228,7 @@ var myLuisURL= process.env.LUIS_URL;
 var recognizer = new builder.LuisRecognizer(myLuisURL);
 
 bot.dialog('/', new builder.IntentDialog({recognizers:[recognizer]})
-    .matches('Lunch', '/lunchNearby')
+    .matches('Lunch', '/suggest')
     .matches('Hello', '/hello')
     .matches('Chinese', '/chinese')
     .matches('Setup', '/setLocation')
@@ -240,7 +241,7 @@ bot.dialog('/lunch', function (session, args) {
     sendRandomPlaceInfoCard(session, favorites);
 });
 
-bot.dialog('/lunchNearby', [
+bot.dialog('/suggest', [
     function (session, args, next) {
         if (session.message.source == "facebook") {
             if (!session.userData.coordinates) {
@@ -270,7 +271,6 @@ bot.dialog('/lunchNearby', [
         }
     }
 ]);
-bot.beginDialogAction('lunchNearby', '/lunchNearby');
 
 bot.dialog('/hello', function (session) {
     session.send('Hi 您好 :)');
@@ -359,8 +359,8 @@ bot.dialog('/setLocation', [
 
 bot.dialog('/help', function(session) {
     session.endDialog("這是一個推薦用餐地點的機器人，目前支援下列指令:\n\n"+
-        "  '吃什麼' -- 推薦用餐地點\n\n"+
-        "  '設置', -- 設定您目前位置, 目前僅支援 Facebook Messenger\n\n"+
-        "  'help' -- 顯示本訊息");
+        "  'suggest' 或 '吃什麼' -- 推薦用餐地點\n\n"+
+        "  'setup' 或 '設置', -- 設定您目前位置, 目前僅支援 Facebook Messenger\n\n"+
+        "  'help' 或 '求助' -- 顯示本訊息");
 });
 /* vim: set et sw=4: */
