@@ -145,7 +145,7 @@ bot.use(builder.Middleware.dialogVersion({ version: 12.0, resetCommand: /^reset/
 //=========================================================
 
 bot.endConversationAction('goodbye', 'Goodbye :)', { matches: /^goodbye/i });
-bot.beginDialogAction('lunch', '/lunch', { matches: /^lunch/i });
+bot.beginDialogAction('favorites', '/favorites', { matches: /^(lunch|favorites)/i });
 bot.beginDialogAction('setup', '/setLocation', { matches: /^setup/i });
 bot.beginDialogAction('suggest', '/suggest', { matches: /^suggest/i });
 bot.beginDialogAction('help', '/help', { matches: /^help/i });
@@ -174,7 +174,6 @@ var favorites = [
 var priceStr = ['免費', '便宜', '適中', '昂貴', '非常昂貴'];
 
 var defaultReviewerPhoto = '//ssl.gstatic.com/images/branding/product/2x/avatar_square_blue_512dp.png'
-//var defaultLocation = [25.0783711, 121.5714316];
 
 //=========================================================
 // Helper functions
@@ -256,7 +255,7 @@ bot.dialog('/', new builder.IntentDialog({recognizers:[recognizer]})
         session.endDialog("I'm sorry. I didn't understand, please type 'help' for detailed usage.");
     }));
 
-bot.dialog('/lunch', function (session, args) {
+bot.dialog('/favorites', function (session, args) {
     sendRandomPlaceInfoCard(session, favorites);
 });
 
