@@ -29,6 +29,7 @@ var connector = new builder.ChatConnector({
 });
 
 var bot = new builder.UniversalBot(connector);
+bot.set('persistConversationData', true);
 server.post('/api/messages', connector.listen());
 
 // Google Places service
@@ -241,6 +242,24 @@ function isSessionInSetup (session) {
     }
 }
 
+function getCoordinates(session) {
+    var address = session.message.address;
+    if (address.conversation.isGroup) {
+        return session.conversationData.coordinates;
+    } else {
+        return session.userData.coordinates;
+    }
+}
+
+function setCoordinates(session, coordinates) {
+    var address = session.message.address;
+    if (address.conversation.isGroup) {
+        session.conversationData.coordinates = coordinates;
+    } else {
+        session.userData.coordinates = coordinates;
+    }
+}
+
 //=========================================================
 // Bots Dialogs
 //=========================================================
@@ -261,10 +280,10 @@ bot.dialog('/favorites', function (session, args) {
 
 bot.dialog('/suggest', [
     function (session, args, next) {
-        if (!session.userData.coordinates) {
+        var coordinates = getCoordinates(session);
+        if (!coordinates) {
             session.beginDialog('/setLocation');
         } else {
-            var coordinates = session.userData.coordinates;
             next({ response: coordinates });
         }
     },
@@ -349,7 +368,7 @@ bot.dialog('/setLocation', [
     },
     function (session, results) {
         if (results.response) {
-            session.userData.coordinates = results.response;
+            setCoordinates(session, results.response);
         }
         session.send('設置'+ (results.response ? '完成' : '失敗'))
             .endDialogWithResult(results);
