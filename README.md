@@ -1,5 +1,5 @@
-# lunchbot
-Lunch bot based on Microsoft Bot Framework
+# LunchBot
+Lunch bot based on Microsoft Bot Framework and LUIS
 
 ## Requirements
   * Account of [Microsoft Bot Framework](https://dev.botframework.com/)
