@@ -34,6 +34,9 @@ server.post('/api/messages', connector.listen());
 // Google Places service
 var places = new GooglePlaces(process.env.GOOGLE_PLACES_API_KEY, process.env.GOOGLE_PLACES_OUTPUT_FORMAT || "json");
 
+// LUIS service
+var myLuisURL= process.env.LUIS_URL;
+var recognizer = new builder.LuisRecognizer(myLuisURL);
 
 //=========================================================
 // Activity Events
@@ -148,7 +151,7 @@ bot.beginDialogAction('suggest', '/suggest', { matches: /^suggest/i });
 bot.beginDialogAction('help', '/help', { matches: /^help/i });
 
 //=========================================================
-// Bots Dialogs
+// Default values
 //=========================================================
 
 var favorites = [
@@ -171,7 +174,11 @@ var favorites = [
 var priceStr = ['免費', '便宜', '適中', '昂貴', '非常昂貴'];
 
 var defaultReviewerPhoto = '//ssl.gstatic.com/images/branding/product/2x/avatar_square_blue_512dp.png'
-var defaultLocation = [25.0783711, 121.5714316];
+//var defaultLocation = [25.0783711, 121.5714316];
+
+//=========================================================
+// Helper functions
+//=========================================================
 
 function randomIntInc (low, high) {
     return Math.floor(Math.random() * (high - low + 1) + low);
@@ -225,8 +232,19 @@ function sendRandomPlaceInfoCard (session, results) {
     });
 }
 
-var myLuisURL= process.env.LUIS_URL;
-var recognizer = new builder.LuisRecognizer(myLuisURL);
+function isSessionInSetup (session) {
+    var dialogStack = session.dialogStack();
+    builder.Session.popDialogStackEntry(dialogStack);
+    if (builder.Session.findDialogStackEntry(dialogStack, "*:/setLocation") >= 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+//=========================================================
+// Bots Dialogs
+//=========================================================
 
 bot.dialog('/', new builder.IntentDialog({recognizers:[recognizer]})
     .matches('Lunch', '/suggest')
@@ -271,7 +289,7 @@ bot.dialog('/suggest', [
 
 bot.dialog('/hello', function (session) {
     session.send('Hi 您好 :)');
-    session.beginDialog('/help');
+    session.replaceDialog('/help');
 });
 
 bot.dialog('/chinese', function (session) {
@@ -321,7 +339,10 @@ bot.beginDialogAction('reviews', '/reviews');
 
 bot.dialog('/setLocation', [
     function (session, args) {
-        if (session.message.source == 'facebook') {
+        if (isSessionInSetup(session)) {
+            session.send("請先完成設置")
+                .endDialogWithResult({});
+        } else if (session.message.source == 'facebook') {
             session.beginDialog('/setLocation/facebook');
         } else {
             session.beginDialog('/setLocation/default');
@@ -331,8 +352,8 @@ bot.dialog('/setLocation', [
         if (results.response) {
             session.userData.coordinates = results.response;
         }
-        session.send('設置'+ (results.response ? '完成' : '失敗'));
-        session.endDialogWithResult(results);
+        session.send('設置'+ (results.response ? '完成' : '失敗'))
+            .endDialogWithResult(results);
     }
 ]);
 
@@ -387,7 +408,8 @@ bot.dialog('/setLocation/default', [
                     ]);
                 builder.Prompts.confirm(session, msg);
             } else {
-                session.endDialog("無法定位你所輸入的位置");
+                session.send("無法定位你所輸入的位置")
+                    .endDialogWithResult({});
             }
         });
     },
@@ -395,8 +417,8 @@ bot.dialog('/setLocation/default', [
         if (results.response) {
             session.endDialogWithResult({ response: session.dialogData.coordinates });
         } else {
-            session.send("請提供更精確的位置");
-            session.endDialogWithResult({});
+            session.send("請提供更精確的位置")
+                .endDialogWithResult({});
         }
     }
 ]);
