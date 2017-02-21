@@ -11,6 +11,7 @@ require('dotenv-extended').load();
 var restify = require('restify');
 var builder = require('botbuilder');
 var GooglePlaces = require('googleplaces');
+var weather = require('openweather-apis');
 
 //=========================================================
 // Bot Setup
@@ -38,6 +39,11 @@ var places = new GooglePlaces(process.env.GOOGLE_PLACES_API_KEY, process.env.GOO
 // LUIS service
 var myLuisURL= process.env.LUIS_URL;
 var recognizer = new builder.LuisRecognizer(myLuisURL);
+
+// OpenWeatherMap servic
+weather.setLang('zh_tw');
+weather.setUnits('metric');
+weather.setAPPID(process.env.OPENWEATHERMAP_KEY);
 
 //=========================================================
 // Activity Events
@@ -149,6 +155,7 @@ bot.endConversationAction('goodbye', 'Goodbye :)', { matches: /^goodbye/i });
 bot.beginDialogAction('favorites', '/favorites', { matches: /^(lunch|favorites)/i });
 bot.beginDialogAction('setup', '/setLocation', { matches: /^setup/i });
 bot.beginDialogAction('suggest', '/suggest', { matches: /^suggest/i });
+bot.beginDialogAction('weather', '/weather', { matches: /^weather/i });
 bot.beginDialogAction('help', '/help', { matches: /^help/i });
 
 //=========================================================
@@ -274,6 +281,7 @@ bot.dialog('/', new builder.IntentDialog({recognizers:[recognizer]})
     .matches('Hello', '/hello')
     .matches('Chinese', '/chinese')
     .matches('Setup', '/setLocation')
+    .matches('Weather', '/weather')
     .matches('Help', '/help')
     .onDefault(function (session) {
         session.endDialog("I'm sorry. I didn't understand, please type 'help' for detailed usage.");
@@ -442,6 +450,47 @@ bot.dialog('/setLocation/default', [
         } else {
             session.send("請提供更精確的位置")
                 .endDialogWithResult({});
+        }
+    }
+]);
+
+bot.dialog('/weather', [
+    function (session, args, next) {
+        var coordinates = getCoordinates(session);
+        if (!coordinates) {
+            session.beginDialog('/setLocation');
+        } else {
+            next({ response: coordinates });
+        }
+    },
+    function (session, results) {
+        if (results.response) {
+            weather.setCoordinate(results.response[0], results.response[1]);
+            weather.getAllWeather(function (err, res) {
+                if (err) {
+                    session.endDialog('無法取得天氣資訊');
+                } else {
+                    var msg = new builder.Message(session)
+                        .textFormat(builder.TextFormat.xml)
+                        .attachments([
+                            new builder.ThumbnailCard(session)
+                            .title(res.weather[0].main+'')
+                            .subtitle(res.weather[0].description+'')
+                            .text(
+                                '氣溫: '+res.main.temp+' ℃\n'+
+                                '最高溫: '+res.main.temp_max+' ℃\n'+
+                                '最低溫: '+res.main.temp_min+' ℃\n'+
+                                '溼度: '+res.main.humidity
+                            )
+                            .images([
+                                builder.CardImage.create(session, 'https://openweathermap.org/img/w/'+res.weather[0].icon+'.png')
+                            ])
+                        ]);
+                    session.endDialog(msg);
+                }
+            });
+        } else {
+            session.endDialog();
         }
     }
 ]);

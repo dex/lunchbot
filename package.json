@@ -23,6 +23,7 @@
     "botbuilder": "^3.6.0",
     "dotenv-extended": "^1.0.4",
     "googleplaces": "^0.6.1",
+    "openweather-apis": "^3.0.2",
     "restify": "^4.0.4"
   }
 }
