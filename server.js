@@ -474,8 +474,8 @@ bot.dialog('/weather', [
                         .textFormat(builder.TextFormat.xml)
                         .attachments([
                             new builder.ThumbnailCard(session)
-                            .title(res.weather[0].main+'')
-                            .subtitle(res.weather[0].description+'')
+                            .title(res.weather[0].description+'')
+                            .subtitle(res.name)
                             .text(
                                 '氣溫: '+res.main.temp+' ℃\n'+
                                 '最高溫: '+res.main.temp_max+' ℃\n'+
