@@ -170,6 +170,7 @@ var favorites = [
     { place_id:'ChIJhTzhxm-sQjQRPc_xAdkk3_k' }, // '洲子美食街'
     { place_id:'ChIJPYTgGWWsQjQRPJOWXnjc0b0' }, // '自由廣場'
     { place_id:'ChIJhbuP82WsQjQRDHnYL4faQKc' }, // '珍寶廚房'
+    { place_id:'ChIJgaDTXm-sQjQRGb56sBcdikY' }, // '成都抄手'
     { place_id:'ChIJH0yo1m_QDRQRLdX5iHYlgaE' }, // '山西刀切麵'
     { place_id:'ChIJiaCFXm-sQjQRSC34Zi-f6V8' }, // '客家魷魚羹'
 ];
