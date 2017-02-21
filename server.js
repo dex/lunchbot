@@ -170,6 +170,8 @@ var favorites = [
     { place_id:'ChIJhTzhxm-sQjQRPc_xAdkk3_k' }, // '洲子美食街'
     { place_id:'ChIJPYTgGWWsQjQRPJOWXnjc0b0' }, // '自由廣場'
     { place_id:'ChIJhbuP82WsQjQRDHnYL4faQKc' }, // '珍寶廚房'
+    { place_id:'ChIJH0yo1m_QDRQRLdX5iHYlgaE' }, // '山西刀切麵'
+    { place_id:'ChIJiaCFXm-sQjQRSC34Zi-f6V8' }, // '客家魷魚羹'
 ];
 
 var priceStr = ['免費', '便宜', '適中', '昂貴', '非常昂貴'];
@@ -180,8 +182,10 @@ var defaultReviewerPhoto = '//ssl.gstatic.com/images/branding/product/2x/avatar_
 // Helper functions
 //=========================================================
 
-function randomIntInc (low, high) {
-    return Math.floor(Math.random() * (high - low + 1) + low);
+function randomIntInc(min, max) {
+    var min = Math.ceil(min);
+    var max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 function googleStaticMapImage (lat, lng) {
