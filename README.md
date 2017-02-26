@@ -5,6 +5,7 @@ Lunch bot based on Microsoft Bot Framework and LUIS
   * Account of [Microsoft Bot Framework](https://dev.botframework.com/)
   * Account of [LUIS](https://www.luis.ai/)
   * Google API key
+  * OpenWeatherMap API key
 
 ## Supported intents
 Currently, we support `Help`, `Setup`, `Weather` and `Lunch` intents. Please add those intents to you [LUIS](https://www.luis.ai/) model and train the model with utterances.
