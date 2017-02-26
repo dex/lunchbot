@@ -25,3 +25,5 @@ Suggest deploying your app to [Azure](https://azure.microsoft.com/), it provides
 |Facebook|[![Facebook](https://facebook.botframework.com/Content/MessageUs.png)](https://www.messenger.com/t/587502338111802)|
 
 ### Screenshots
+<img src="https://dl.dropboxusercontent.com/u/871027/lunchbot_skype.png" alt="Skype" height="400" width="225">
+<img src="https://dl.dropboxusercontent.com/u/871027/lunchbot_facebook.png" alt="Facebook" height="400" width="225">
