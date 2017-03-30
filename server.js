@@ -184,7 +184,7 @@ var favorites = [
 
 var priceStr = ['免費', '便宜', '適中', '昂貴', '非常昂貴'];
 
-var defaultReviewerPhoto = '//ssl.gstatic.com/images/branding/product/2x/avatar_square_blue_512dp.png'
+var defaultReviewerPhoto = 'https://ssl.gstatic.com/images/branding/product/2x/avatar_square_blue_512dp.png'
 
 //=========================================================
 // Helper functions
@@ -345,7 +345,7 @@ bot.dialog('/reviews', [
                     if (!review.profile_photo_url) {
                         review.profile_photo_url = defaultReviewerPhoto;
                     }
-                    photo.push(builder.CardImage.create(session,'https:'+review.profile_photo_url));
+                    photo.push(builder.CardImage.create(session,review.profile_photo_url));
                     reviewCards.push(new builder.ThumbnailCard(session)
                         .title('評價: '+ratingToStars(review.rating))
                         .subtitle(review.author_name)
